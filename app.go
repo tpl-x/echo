@@ -68,7 +68,3 @@ func (a *app) start() {
 
 	a.logger.Info("Server gracefully stopped")
 }
-
-func (a *app) stop() {
-	a.engine.Shutdown(context.Background())
-}

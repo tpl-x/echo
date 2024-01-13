@@ -1,0 +1,9 @@
+server:
+    bind_port: 9000
+    grace_exit_timeout: 5
+log:
+    file_name: logs/server.log
+    max_size: 10
+    max_backups: 7
+    max_keep_days: 20
+    compress: true

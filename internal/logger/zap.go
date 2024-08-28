@@ -17,15 +17,16 @@ func NewZapLogger(config *config.AppConfig) *zap.Logger {
 		MaxAge:     config.Log.MaxKeepDays,
 		Compress:   config.Log.Compress,
 	}
-	writeSyncer := zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(lumberjackLogger))
+	writeSyncer := zapcore.NewMultiWriteSyncer(
+		zapcore.AddSync(os.Stdout),
+		zapcore.AddSync(lumberjackLogger),
+	)
 	encoder := zapcore.NewConsoleEncoder(encoderCfg)
-
-	opt := zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-		return zapcore.NewTee(
-			zapcore.NewCore(encoder, writeSyncer, zapcore.InfoLevel),
-			zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
-		)
-	})
-	zapLogger, _ := zap.NewProduction(opt)
+	core := zapcore.NewCore(
+		encoder,
+		writeSyncer,
+		zap.NewAtomicLevelAt(zapcore.InfoLevel),
+	)
+	zapLogger := zap.New(core, zap.AddCaller())
 	return zapLogger
 }

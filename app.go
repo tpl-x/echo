@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/brpaz/echozap"
 	"github.com/labstack/echo/v4"
@@ -48,7 +49,7 @@ func (a *app) start() {
 	go func() {
 		// start listen
 		listenAddr := fmt.Sprintf(":%d", a.config.Server.BindPort)
-		if err := a.engine.Start(listenAddr); err != nil && err != http.ErrServerClosed {
+		if err := a.engine.Start(listenAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			a.logger.Fatal("shutting down the server")
 		}
 	}()

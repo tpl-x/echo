@@ -10,6 +10,7 @@ import (
 
 func NewZapLogger(logConfig *config.LogConfig) *zap.Logger {
 	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   logConfig.FileName,
 		MaxSize:    logConfig.MaxSize,

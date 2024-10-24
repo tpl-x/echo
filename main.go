@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	flag "github.com/spf13/pflag"
+	"github.com/thejerf/suture/v4"
 	"github.com/tpl-x/echo/internal/config"
 )
 
@@ -17,6 +19,13 @@ func main() {
 	if err != nil {
 		panic("failed to load config")
 	}
+
+	sup := suture.NewSimple("echoWebServer")
 	app := wireApp(appConfig)
-	app.start()
+	sup.Add(app)
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+	if err = sup.Serve(ctx); err != nil {
+		panic(err)
+	}
 }

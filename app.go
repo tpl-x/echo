@@ -7,6 +7,7 @@ import (
 	"github.com/brpaz/echozap"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/thejerf/suture/v4"
 	"github.com/tpl-x/echo/internal/config"
 	"go.uber.org/zap"
 	"net/http"
@@ -16,10 +17,24 @@ import (
 	"time"
 )
 
+var _ suture.Service = (*app)(nil)
+
 type app struct {
 	config *config.AppConfig
 	logger *zap.Logger
 	engine *echo.Echo
+}
+
+func (a *app) Serve(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			a.logger.Warn("server is about to shutdown")
+			return nil
+		default:
+			a.start()
+		}
+	}
 }
 
 func newApp(config *config.AppConfig, logger *zap.Logger) *app {

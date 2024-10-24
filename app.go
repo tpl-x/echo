@@ -11,9 +11,6 @@ import (
 	"github.com/tpl-x/echo/internal/config"
 	"go.uber.org/zap"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -29,8 +26,7 @@ func (a *app) Serve(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			a.logger.Warn("server is about to shutdown")
-			return nil
+			return a.stop()
 		default:
 			a.start()
 		}
@@ -45,7 +41,17 @@ func newApp(config *config.AppConfig, logger *zap.Logger) *app {
 	}
 }
 
-func (a *app) start() {
+func (a *app) stop() error {
+	if a.engine != nil {
+		a.logger.Warn("server will  shutdown", zap.Int("in seconds", a.config.Server.GraceExitTimeout))
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(a.config.Server.GraceExitTimeout)*time.Second)
+		defer cancel()
+		a.engine.Shutdown(ctx)
+	}
+	return nil
+}
+
+func (a *app) start() error {
 	// setup middleware
 	a.engine.Use(echozap.ZapLogger(a.logger))
 	a.engine.Use(middleware.Recover())
@@ -60,27 +66,11 @@ func (a *app) start() {
 		return c.String(200, "hello,world!")
 	})
 
-	// start serve
-	go func() {
-		// start listen
-		listenAddr := fmt.Sprintf(":%d", a.config.Server.BindPort)
-		if err := a.engine.Start(listenAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			a.logger.Fatal("shutting down the server")
-		}
-	}()
-
-	// wait signal to exit
-	quit := make(chan os.Signal, 1)
-	// capture SIGINT（Ctrl+C）and SIGTERM
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	// set timeout to exit
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(a.config.Server.GraceExitTimeout)*time.Second)
-	defer cancel()
-	if err := a.engine.Shutdown(ctx); err != nil {
-		a.logger.Fatal(err.Error())
+	// start listen
+	listenAddr := fmt.Sprintf(":%d", a.config.Server.BindPort)
+	if err := a.engine.Start(listenAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		a.logger.Fatal("shutting down the server")
+		return err
 	}
-
-	a.logger.Info("Server gracefully stopped")
+	return nil
 }

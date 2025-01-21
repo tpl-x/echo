@@ -7,7 +7,7 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/tpl-x/echo/internal/config"
-	"github.com/tpl-x/echo/internal/logger"
+	"github.com/tpl-x/echo/internal/pkg/logger"
 )
 
 // wireApp init for builder backend

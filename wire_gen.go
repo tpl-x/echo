@@ -8,7 +8,7 @@ package main
 
 import (
 	"github.com/tpl-x/echo/internal/config"
-	"github.com/tpl-x/echo/internal/logger"
+	"github.com/tpl-x/echo/internal/pkg/logger"
 )
 
 // Injectors from wire.go:

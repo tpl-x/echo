@@ -9,7 +9,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/wire v0.6.0
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/spf13/pflag v1.0.6
+	github.com/spf13/pflag v1.0.7
 	github.com/thejerf/suture/v4 v4.0.6
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.39.0

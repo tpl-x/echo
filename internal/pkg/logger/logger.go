@@ -1,11 +1,15 @@
 package logger
 
 import (
-	"github.com/google/wire"
 	"github.com/tpl-x/echo/internal/config"
+	"go.uber.org/fx"
 )
 
-var ProviderSet = wire.NewSet(
-	wire.FieldsOf(new(*config.AppConfig), "Log"),
-	NewZapLogger,
+var Module = fx.Module("logger",
+	fx.Provide(
+		func(appConfig *config.AppConfig) *config.LogConfig {
+			return &appConfig.Log
+		},
+		NewZapLogger,
+	),
 )

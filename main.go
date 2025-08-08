@@ -7,8 +7,12 @@ import (
 	"syscall"
 
 	flag "github.com/spf13/pflag"
-	"github.com/thejerf/suture/v4"
+	"github.com/tpl-x/echo/internal/biz"
 	"github.com/tpl-x/echo/internal/config"
+	"github.com/tpl-x/echo/internal/data"
+	"github.com/tpl-x/echo/internal/handler"
+	"github.com/tpl-x/echo/internal/pkg/logger"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
@@ -23,17 +27,15 @@ func init() {
 func main() {
 	flag.Parse()
 
-	appConfig, err := config.LoadFromFile(configPath)
-	if err != nil {
-		panic("failed to load config")
-	}
-
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
-
-	sup := suture.NewSimple("echoWebServer")
-	app := wireApp(appConfig)
-	sup.Add(app)
+	fxApp := fx.New(
+		fx.Provide(config.ProvideConfig(configPath)),
+		logger.Module,
+		data.Module,
+		biz.Module,
+		handler.Module,
+		fx.Provide(NewApp),
+		fx.NopLogger,
+	)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -44,13 +46,19 @@ func main() {
 
 	go func() {
 		sig := <-sigChan
-		logger.Info("Received signal", zap.String("signal", sig.String()))
+		zap.L().Info("Received signal", zap.String("signal", sig.String()))
 		cancel()
 	}()
 
-	if err := sup.Serve(ctx); err != nil {
-		logger.Error("Server is about to shutdown", zap.Error(err))
+	if err := fxApp.Start(ctx); err != nil {
+		panic("failed to start fx app")
 	}
 
-	logger.Info("Server shutdown complete")
+	<-ctx.Done()
+
+	if err := fxApp.Stop(context.Background()); err != nil {
+		zap.L().Error("Server shutdown error", zap.Error(err))
+	}
+
+	zap.L().Info("Server shutdown complete")
 }

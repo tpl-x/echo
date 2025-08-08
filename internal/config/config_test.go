@@ -19,6 +19,12 @@ func TestCreateAConfig(t *testing.T) {
 			MaxKeepDays: 20,
 			Compress:    true,
 		},
+		Database: DatabaseConfig{
+			Driver:   "sqlite3",
+			Database: "echodb.sqlite",
+			MaxIdle:  10,
+			MaxOpen:  10,
+		},
 	}
 	f, err := os.OpenFile("testdata/config_example.yaml", os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {

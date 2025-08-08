@@ -1,0 +1,18 @@
+server:
+    bind_port: 9000
+    grace_exit_timeout: 5
+log:
+    file_name: server.log
+    max_size: 10
+    max_backups: 7
+    max_keep_days: 20
+    compress: true
+database:
+    driver: sqlite3
+    host: ""
+    port: 0
+    username: ""
+    password: ""
+    database: echodb.sqlite
+    max_idle: 10
+    max_open: 10

@@ -6,9 +6,9 @@ echo framework project template
 ```bash
  go install golang.org/x/tools/cmd/gonew@latest
 ```
-**wire**
+**ent**
 ```bash
-go install github.com/google/wire/cmd/wire@latest
+go install entgo.io/ent/cmd/ent@latest
 ```
 ### new project
 use command

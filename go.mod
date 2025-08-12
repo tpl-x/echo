@@ -7,7 +7,7 @@ toolchain go1.24.6
 require (
 	entgo.io/ent v0.14.5
 	github.com/brpaz/echozap v1.1.3
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lib-x/entsqlite v0.1.3

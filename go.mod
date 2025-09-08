@@ -11,7 +11,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/lib-x/entsqlite v0.1.4
-	github.com/spf13/pflag v1.0.7
+	github.com/spf13/pflag v1.0.10
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.41.0

@@ -3,6 +3,7 @@ server:
     grace_exit_timeout: 5
 log:
     file_name: server.log
+    level: info
     max_size: 10
     max_backups: 7
     max_keep_days: 20
@@ -16,3 +17,8 @@ database:
     database: echodb.sqlite
     max_idle: 10
     max_open: 10
+jwt:
+    access_secret: change-me-access-secret
+    access_token_exp_sec: 900
+    refresh_secret: change-me-refresh-secret
+    refresh_token_exp_sec: 604800

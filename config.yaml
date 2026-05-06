@@ -4,6 +4,7 @@ server:
 
 log:
   file_name: "app.log"
+  level: "info"
   max_size: 100
   max_backups: 5
   max_keep_days: 30
@@ -14,3 +15,9 @@ database:
   database: echodb.sqlite
   max_idle: 10
   max_open: 10
+
+jwt:
+  access_secret: "change-me-access-secret"
+  access_token_exp_sec: 900
+  refresh_secret: "change-me-refresh-secret"
+  refresh_token_exp_sec: 604800

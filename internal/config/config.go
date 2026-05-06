@@ -11,10 +11,12 @@ type AppConfig struct {
 	Server   ServerConfig   `yaml:"server"`
 	Log      LogConfig      `yaml:"log"`
 	Database DatabaseConfig `yaml:"database"`
+	JWT      JWTConfig      `yaml:"jwt"`
 }
 
 type LogConfig struct {
 	FileName    string `yaml:"file_name"`
+	Level       string `yaml:"level"`
 	MaxSize     int    `yaml:"max_size"`
 	MaxBackups  int    `yaml:"max_backups"`
 	MaxKeepDays int    `yaml:"max_keep_days"`
@@ -37,6 +39,13 @@ type DatabaseConfig struct {
 	MaxOpen  int    `yaml:"max_open"`
 }
 
+type JWTConfig struct {
+	AccessSecret       string `yaml:"access_secret"`
+	AccessTokenExpSec  int64  `yaml:"access_token_exp_sec"`
+	RefreshSecret      string `yaml:"refresh_secret"`
+	RefreshTokenExpSec int64  `yaml:"refresh_token_exp_sec"`
+}
+
 // LoadFromReader  load config from reader
 func LoadFromReader(reader io.Reader) (*AppConfig, error) {
 	config := &AppConfig{}
@@ -49,10 +58,10 @@ func LoadFromReader(reader io.Reader) (*AppConfig, error) {
 // LoadFromFile Load config from file path
 func LoadFromFile(path string) (*AppConfig, error) {
 	f, err := os.Open(path)
-	defer f.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	return LoadFromReader(f)
 }
 

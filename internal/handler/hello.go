@@ -1,7 +1,9 @@
 package handler
 
 import (
-	"github.com/labstack/echo/v4"
+	"net/http"
+
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -15,7 +17,7 @@ func NewHelloHandler(logger *zap.Logger) *HelloHandler {
 	}
 }
 
-func (h *HelloHandler) Hello(c echo.Context) error {
+func (h *HelloHandler) Hello(c *echo.Context) error {
 	h.logger.Info("Hello endpoint called")
-	return c.String(200, "hello,world!")
+	return c.String(http.StatusOK, "hello,world!")
 }

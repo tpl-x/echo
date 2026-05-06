@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/tpl-x/echo/internal/biz"
 	"go.uber.org/zap"
 )
@@ -21,7 +21,7 @@ func NewUserHandler(userUseCase *biz.UserUseCase, logger *zap.Logger) *UserHandl
 	}
 }
 
-func (h *UserHandler) GetUser(c echo.Context) error {
+func (h *UserHandler) GetUser(c *echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -43,7 +43,7 @@ type CreateUserRequest struct {
 	Email string `json:"email"`
 }
 
-func (h *UserHandler) CreateUser(c echo.Context) error {
+func (h *UserHandler) CreateUser(c *echo.Context) error {
 	var req CreateUserRequest
 	if err := c.Bind(&req); err != nil {
 		h.logger.Warn("Invalid request body", zap.Error(err))
@@ -59,7 +59,7 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, user)
 }
 
-func (h *UserHandler) ListUsers(c echo.Context) error {
+func (h *UserHandler) ListUsers(c *echo.Context) error {
 	users, err := h.userUseCase.ListUsers(c.Request().Context())
 	if err != nil {
 		h.logger.Error("Failed to list users", zap.Error(err))

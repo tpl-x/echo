@@ -14,6 +14,7 @@ func TestCreateAConfig(t *testing.T) {
 		},
 		Log: LogConfig{
 			FileName:    "server.log",
+			Level:       "info",
 			MaxSize:     10,
 			MaxBackups:  7,
 			MaxKeepDays: 20,
@@ -24,6 +25,12 @@ func TestCreateAConfig(t *testing.T) {
 			Database: "echodb.sqlite",
 			MaxIdle:  10,
 			MaxOpen:  10,
+		},
+		JWT: JWTConfig{
+			AccessSecret:       "change-me-access-secret",
+			AccessTokenExpSec:  900,
+			RefreshSecret:      "change-me-refresh-secret",
+			RefreshTokenExpSec: 604800,
 		},
 	}
 	f, err := os.OpenFile("testdata/config_example.yaml", os.O_RDWR|os.O_CREATE, 0755)

@@ -2,23 +2,25 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/brpaz/echozap"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/tpl-x/echo/internal/config"
-	"github.com/tpl-x/echo/internal/handler"
-	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
+
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
+	"github.com/tpl-x/echo/internal/config"
+	"github.com/tpl-x/echo/internal/handler"
+	applogger "github.com/tpl-x/echo/internal/pkg/logger"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 type App struct {
-	config *config.AppConfig
-	logger *zap.Logger
-	engine *echo.Echo
+	config       *config.AppConfig
+	logger       *zap.Logger
+	engine       *echo.Echo
+	serverCancel context.CancelFunc
+	serverDone   chan error
 }
 
 func NewApp(lc fx.Lifecycle, config *config.AppConfig, logger *zap.Logger, handlers *handler.Handlers) *App {
@@ -29,7 +31,8 @@ func NewApp(lc fx.Lifecycle, config *config.AppConfig, logger *zap.Logger, handl
 	}
 
 	// setup middleware
-	app.engine.Use(echozap.ZapLogger(logger))
+	app.engine.Use(middleware.RequestID())
+	app.engine.Use(applogger.RequestLogger(logger))
 	app.engine.Use(middleware.Recover())
 	app.engine.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -47,19 +50,46 @@ func NewApp(lc fx.Lifecycle, config *config.AppConfig, logger *zap.Logger, handl
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			listenAddr := fmt.Sprintf(":%d", config.Server.BindPort)
+			serverCtx, cancel := context.WithCancel(context.Background())
+			app.serverCancel = cancel
+			app.serverDone = make(chan error, 1)
 			go func() {
-				listenAddr := fmt.Sprintf(":%d", config.Server.BindPort)
-				if err := app.engine.Start(listenAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					logger.Fatal("shutting down the server")
+				err := (echo.StartConfig{
+					Address:         listenAddr,
+					HideBanner:      true,
+					HidePort:        true,
+					GracefulTimeout: time.Duration(config.Server.GraceExitTimeout) * time.Second,
+					OnShutdownError: func(err error) {
+						logger.Error("server shutdown error", zap.Error(err))
+					},
+				}).Start(serverCtx, app.engine)
+				if err != nil {
+					logger.Error("server exited", zap.Error(err))
 				}
+				app.serverDone <- err
 			}()
+			logger.Info("server started", zap.String("address", listenAddr))
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			logger.Warn("server will shutdown", zap.Int("in seconds", config.Server.GraceExitTimeout))
+			logger.Warn("server will shutdown", zap.Int("in_seconds", config.Server.GraceExitTimeout))
+			if app.serverCancel == nil || app.serverDone == nil {
+				return nil
+			}
+			app.serverCancel()
 			shutdownCtx, cancel := context.WithTimeout(ctx, time.Duration(config.Server.GraceExitTimeout)*time.Second)
 			defer cancel()
-			return app.engine.Shutdown(shutdownCtx)
+			select {
+			case err := <-app.serverDone:
+				if err != nil && err != http.ErrServerClosed {
+					return err
+				}
+				logger.Info("server shutdown complete")
+				return nil
+			case <-shutdownCtx.Done():
+				return shutdownCtx.Err()
+			}
 		},
 	})
 

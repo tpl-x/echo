@@ -12,6 +12,7 @@ import (
 	"github.com/tpl-x/echo/internal/data"
 	"github.com/tpl-x/echo/internal/handler"
 	"github.com/tpl-x/echo/internal/pkg/logger"
+	"github.com/tpl-x/echo/internal/pkg/token"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -30,6 +31,7 @@ func main() {
 	fxApp := fx.New(
 		fx.Provide(config.ProvideConfig(configPath)),
 		logger.Module,
+		token.Module,
 		data.Module,
 		biz.Module,
 		handler.Module,
